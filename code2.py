@@ -1,69 +1,88 @@
-class Mentor:
-    def __init__(self, first_name, last_name):
+
+class Human:
+    def __init__(self, first_name: str, last_name: str, gender: str):
         self.first_name = first_name
         self.last_name = last_name
-        self.courses_attached = []
-
-
-class Lecturer(Mentor):
-    def __init__(self, first_name, last_name):
-        super().__init__(first_name, last_name)
-        self.grades = {}
-
-
-class Reviewer(Mentor):
-    def rate_hw(self, student, course, grade):
-        if isinstance(student, Student) and course in self.courses_attached and course in student.courses_in_progress:
-            if course in student.grades:
-                student.grades[course] += [grade]
-            else:
-                student.grades[course] = [grade]
-        else:
-            return 'Ошибка'
-
-
-class Student:
-    def __init__(self, last_name, first_name, gender):
-        self.last_name = last_name
-        self.first_name = first_name
         self.gender = gender
-        self.finished_courses = []
-        self.courses_in_progress = []
+
+
+class Student(Human):
+    def __init__(self, first_name: str, last_name: str, gender: str):
+        super().__init__(first_name, last_name, gender)
         self.grades = {}
 
-    def rate_lecture(self, lecturer, course, grade):
-        if isinstance(lecturer, Lecturer):
-            if course in self.courses_in_progress and course in lecturer.courses_attached:
-                if 1 <= grade <= 10:
-                    if course not in lecturer.grades:
-                        lecturer.grades[course] = []
-                    lecturer.grades[course].append(grade)
-                    return None
-                else:
-                    return 'Ошибка: оценка должна быть от 1 до 10'
-            else:
-                return 'Ошибка: курс не найден у студента или лектора'
-        else:
-            return 'Ошибка: оценивать можно только лектора'
+    def add_grade(self, subject: str, grade: int):
+        if subject not in self.grades:
+            self.grades[subject] = []
+        self.grades[subject].append(grade)
+
+    def average_grade(self) -> float:
+        all_grades = []
+        for grades_list in self.grades.values():
+            all_grades.extend(grades_list)
+        if not all_grades:
+            return 0.0
+        return sum(all_grades) / len(all_grades)
+
+    def __str__(self) -> str:
+        return f"Имя: {self.first_name}\nФамилия: {self.last_name}\nСредняя оценка: {self.average_grade():.1f}"
 
 
-# ---------- ПРОВЕРКА ----------
-lecturer = Lecturer('Иван', 'Иванов')
-reviewer = Reviewer('Пётр', 'Петров')
-student = Student('Алёхина', 'Ольга', 'Ж')
+class Reviewer(Human):
+    def __init__(self, first_name: str, last_name: str, gender: str):
+        super().__init__(first_name, last_name, gender)
 
-student.courses_in_progress += ['Python', 'Java']
-lecturer.courses_attached += ['Python', 'C++']
-reviewer.courses_attached += ['Python', 'C++']
+    def add_grade(self, student: Student, subject: str, grade: int):
+        if isinstance(student, Student):
+            student.add_grade(subject, grade)
 
-print(student.rate_lecture(lecturer, 'Python', 7))  # None
-print(student.rate_lecture(lecturer, 'Java', 8))   # Ошибка
-print(student.rate_lecture(lecturer, 'С++', 8))    # Ошибка
-print(student.rate_lecture(reviewer, 'Python', 6)) # Ошибка
-print(lecturer.grades)  # {'Python': [7]}
+    def __str__(self) -> str:
+        return f"Имя: {self.first_name}\nФамилия: {self.last_name}"
 
 
+class Lecturer(Human):
+    def __init__(self, first_name: str, last_name: str, gender: str):
+        super().__init__(first_name, last_name, gender)
+        self.grades = {}
 
+    def add_grade(self, subject: str, grade: int):
+        if subject not in self.grades:
+            self.grades[subject] = []
+        self.grades[subject].append(grade)
 
+    def average_grade(self) -> float:
+        all_grades = []
+        for grades_list in self.grades.values():
+            all_grades.extend(grades_list)
+        if not all_grades:
+            return 0.0
+        return sum(all_grades) / len(all_grades)
 
+    def __str__(self) -> str:
+        return f"Имя: {self.first_name}\nФамилия: {self.last_name}\nСредняя оценка за лекции: {self.average_grade():.1f}"
+
+if __name__ == "__main__":
+    # Создаем студента
+    student = Student("Мария", "Петрова", "женский")
+    student.add_grade("Математика", 5)
+    student.add_grade("Математика", 5)
+    student.add_grade("Физика", 4)
+    print(student)
+    print()
+
+    # Создаем ревьюера
+    reviewer = Reviewer("Алексей", "Сидоров", "мужской")
+    print(reviewer)
+    print()
+
+    # Создаем лектора
+    lecturer = Lecturer("Елена", "Козлова", "женский")
+    lecturer.add_grade("Программирование", 5)
+    lecturer.add_grade("Программирование", 4)
+    print(lecturer)
+
+    # Проверка наследования
+    print(f"Student is subclass of Human: {issubclass(Student, Human)}")
+    print(f"Lecturer is subclass of Human: {issubclass(Lecturer, Human)}")
+    print(f"Reviewer is subclass of Human: {issubclass(Reviewer, Human)}")
 
